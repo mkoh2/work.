@@ -231,9 +231,41 @@ statistic.
    for pacing/comic relief and small Trust stakes either direction.
 
 ### 6.3 Difficulty curve
-Recommend an explicit day-based table (task frequency, task pool,
-Trust-delta magnitude) rather than continuous scaling — easier to tune
-and to reason about "day 10 should feel unbearable."
+
+**Confirmed: task volume follows the real calendar day being played, not
+a flat rate or a "day N of 10" progression.** This ties the game's
+difficulty to the actual week and season the player is living through,
+consistent with the real-time premise rather than an arbitrary content
+curve:
+
+- **Monday:** light, 2–4 tasks.
+- **Tuesday → Thursday:** ramps up, peaking Thursday (defaults: Tue
+  4–6, Wed 6–8, Thu 8–10 — tunable, not final numbers).
+- **Friday:** genuinely unpredictable most of the year (defaults to the
+  full 2–10 spread, could land light or heavy) — **except summer
+  (June–August) and December, where Friday drops to the same light
+  2–4 range as Monday.** (Northern Hemisphere summer assumed for "light
+  in the summer" — flag if that's wrong.)
+- **Saturday/Sunday: still an open question**, not yet confirmed.
+  Current placeholder defaults weekends to the same light 2–4 range as
+  Monday (still active, just quiet) rather than true zero-task rest
+  days — this is a real fork (does the job respect weekends at all,
+  given §4's "the clock is the antagonist" stance?), not just a number,
+  and needs a decision rather than staying on the placeholder.
+- Mechanically: a day's task-count range converts to an average
+  interval between tasks (real day length ÷ average of that day's
+  range), jittered ±40% so tasks don't arrive on a metronome. This
+  replaces the earlier flat 3–8 minute placeholder interval, and
+  directly addresses a real balance problem found when the scaffold was
+  first run against the actual engine: at the old flat rate, roughly
+  25–30 minutes of real absence was already enough to deplete Trust to
+  zero via stacked missed-task penalties (§4), making the §4.1
+  job-abandonment ending (2 consecutive missed days) practically
+  unreachable since ordinary Trust depletion always got there first.
+  The lighter, week-shaped volume narrows that gap considerably,
+  though the interaction between missed-task stacking and the
+  abandonment threshold is still worth re-testing once both are tuned
+  together, not assumed fixed by this change alone.
 
 ## 7. Presence / Activity System — the online/idle indicator
 
