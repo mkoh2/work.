@@ -40,37 +40,48 @@ background busywork (the fake spreadsheet) that does nothing mechanically
 but exists to sell the fiction and give the player something to do between
 interrupts.
 
-## 4. The Clock & Time System — the central design risk
+## 4. The Clock & Time System — designed hostility, not a bug to soften
 
-This is the single biggest open problem in the vision and deserves to be
-solved deliberately, not by default.
+**Design intent (confirmed):** this game is not trying to be fair or
+bounded. The point is for a player to hit day 3 or 4 and think "wow, this
+is actually difficult" or "I'm being trolled." Anything that makes the
+10-day ask safer or more convenient works against the game's actual goal.
+So: the clock runs on **real wall-clock time regardless of whether the
+app is open.** Closing the game does not pause your job. This is the
+same cruelty as the Trust system (§5) applied to time itself.
 
-**The tension:** "1 real minute = 1 game minute" only works as a mechanic
-if the game can *see* you during that minute. A normal videogame session is
-bounded; this one is bounded by a calendar. That raises questions with no
-obvious right answer:
+**Consequence — this needs a concrete reconciliation rule, not a vibe:**
+if the job doesn't stop when you're not looking, the game needs to know
+what to do with the gap on next launch. Proposed rule:
 
-- Does the game only run while the window is open (so a "day" is however
-  many real hours you spend with it open, spread across up to 10 calendar
-  days)? This is the safest, most implementable version.
-- Or does real-world wall-clock time pass *whether or not the game is
-  open* (so missing a scheduled task while away costs Trust, like a real
-  job)? This is closer to the vision's cruelty but requires the game to
-  reconcile "what happened while you were gone" on next launch, and
-  punishing someone for not having the game open is a hard sell unless
-  it's clearly signposted as the joke.
-- Is there a "shift" (e.g. a defined 1–2 real-hour window per day) rather
-  than the full 24 hours, so the ask is bounded and schedulable?
+- Tasks scheduled during your absence are marked **missed** (not
+  auto-failed silently) — each missed task applies the same Trust
+  penalty as a *badly* resolved one (§5, -8 to -20 range), scaled up
+  slightly the longer the gap (a missed 10-minute task stings less than
+  a missed full shift).
+- On relaunch, the player is shown what they missed (a stack of
+  "you weren't at your desk" notices) before returning to idle — the
+  game should make the absence visible and specific, not just silently
+  dock Trust. That's where the "trolling" lands as a feeling, not just
+  a number.
+- A day with **zero** launches at all is itself a missed-shift event —
+  a full day of missed tasks at once, applied on next open. There is no
+  separate softer "you didn't show up" penalty; not opening the game is
+  simply the worst-case version of missing tasks, not a distinct rule.
+- No grace period, no pause, no "away mode." The clock is the antagonist.
 
-**Recommendation:** define a **shift window** (e.g. the game must be
-opened at least once per real day, and once opened, runs a real-time
-shift of fixed length, say 60–90 real minutes, during which tasks fire).
-Missing a day entirely is itself a Trust penalty ("you didn't show up").
-This keeps the "real time, no pause" horror of the concept while keeping
-the total real-world ask bounded and fair to test.
-
-This needs your decision before the clock/day system gets built — it
-changes the save format, the Trust rules, and the offline-handling logic.
+Open sub-question that's now purely mechanical (not philosophical) and
+still needs an answer before `Clock`/`SaveState` gets built: task
+frequency while away — do tasks keep firing at the normal in-shift rate
+during absence (so a multi-day absence could generate dozens of missed
+tasks and a near-certain loss), or does the scheduler throttle to a
+handful of "you missed something" markers per absence regardless of
+length? The former is more punishing and more consistent with the
+design intent; the latter avoids a single missed day being an
+auto-loss regardless of standing. Recommend the former, since a capped
+penalty is exactly the kind of softening this design is rejecting — but
+flagging it because "day 3 auto-loss" is a real possible outcome of
+that choice, and that should be a choice, not a side effect.
 
 ## 5. Trust System
 
@@ -82,13 +93,18 @@ starting model:
 - Correct/good task resolution: **+2 to +5** depending on task difficulty.
 - Wrong/bad resolution: **-8 to -20** depending on task severity and how
   badly it was botched.
-- **Asymmetry mechanic ("real life"):** every time Trust drops below a
-  prior local peak, cap the *maximum* Trust regainable back to some
-  fraction (e.g. 90%) of that peak, permanently, for the rest of the
-  run. This is what makes trust "hard to get back" structurally, not
-  just numerically slower — a bad day literally lowers your ceiling.
-- Trust decays slightly on its own if the player is idle/AFK during a
-  live task (missed tasks = implicit distrust).
+- **Asymmetry mechanic ("real life"), confirmed as intentionally
+  punishing:** every time Trust drops below a prior local peak, cap the
+  *maximum* Trust regainable back to a fraction of that peak,
+  permanently, for the rest of the run. Set the cap harsher than a
+  first-pass "gentle" value — recommend **75%**, not 90%: a bad
+  stretch early in the run should visibly and permanently lower how
+  well this job can ever go for you again. This is the mechanical
+  expression of "trust, once lost, is very difficult to get back" —
+  it should be felt, not just theoretically true.
+- Trust decays on its own if the player is idle/AFK during a live task,
+  and (per §4) on every missed task while the app is closed. There is
+  no idle-forgiveness window.
 - **Fail state:** Trust hits 0 → fired, run ends, game over screen.
 
 Open question: should there be a visible number, or only a bar (more
@@ -209,10 +225,17 @@ Recommend cutting v1 to prove the core loop before building breadth:
 
 ## 11. Open questions needing your decision
 
-1. Shift-window model for §4 (open-only vs. wall-clock-while-closed vs.
-   fixed daily shift) — blocks Clock/Save design.
-2. Is 10 days consecutive-required, or can they be non-consecutive
-   (miss a day, does the run just stretch, or does it fail outright)?
+1. ~~Shift-window model~~ — resolved (§4): wall-clock runs while closed,
+   no grace period. Still open: does the task scheduler keep firing at
+   normal rate during an absence (near-guaranteed loss on a multi-day
+   gap) or throttle to a capped number of missed-task markers per
+   absence? Recommend the former per design intent, flagged as a real
+   "can auto-lose the run" consequence to confirm on purpose.
+2. Is 10 days consecutive-required, or can a lost run be retried, or is
+   loss permanent/one life only? (Given the design intent, one life —
+   no retry — may be the more consistent answer, but worth confirming:
+   permadeath changes what "designed to frustrate" means in practice,
+   from "hard" to "usually you just lose once and that's the game.")
 3. Trust: bar-only (no number) — confirm, since it changes UI scope.
 4. Is the spreadsheet "busywork" ever itself a scored task, or purely
    idle flavor, in v1?
