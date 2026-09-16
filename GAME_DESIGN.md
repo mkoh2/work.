@@ -125,7 +125,7 @@ everything through the Trust number.
 - This check runs on relaunch, evaluated against the gap since last
   launch, same as the missed-task backlog in §4.
 - Distinguish this state clearly from a Trust-zero firing in the
-  end-of-run screen (§8) — "you stopped showing up" is a different
+  end-of-run screen (§9) — "you stopped showing up" is a different
   ending beat than "they finally had enough of you," even though both
   are game over.
 
@@ -180,12 +180,16 @@ statistic.
    end, so guessing recklessly is punished, not just failing to
    converge. Difficulty = range size + number of allowed guesses.
 
-2. **Spreadsheet busywork** — a fake Excel-like grid. During idle time
-   this is flavor (click cells, type numbers, no consequence). As a
-   *task*, it becomes: "make it look like you did X" under time
-   pressure, with a superficial correctness check (right cells filled,
-   plausible-looking data) — sells the "performing productivity" theme
-   directly.
+2. **Spreadsheet busywork — confirmed sometimes-scored.** A fake
+   Excel-like grid. During idle time it's mostly flavor (click cells,
+   type numbers), but it is not purely decorative: occasionally a real
+   graded moment hides inside ordinary-looking clicking — the manager
+   glances over, and what matters is whether you'd actually kept
+   touching it, not whether you solved anything. This is the same
+   signal the presence system (§7) reads, and it's the main in-fiction
+   reason a player would keep the spreadsheet open and moving during
+   downtime at all — not because it's fun, but because stopping is
+   legible as stopping.
 
 3. **Email composition** — a coworker follow-up. Not full free-text NLP;
    more tractable as a constrained editor (fill-in-the-blank tone/word
@@ -206,7 +210,51 @@ Recommend an explicit day-based table (task frequency, task pool,
 Trust-delta magnitude) rather than continuous scaling — easier to tune
 and to reason about "day 10 should feel unbearable."
 
-## 7. Audio Design
+## 7. Presence / Activity System — the online/idle indicator
+
+**Confirmed:** the game exposes a Teams-style presence status, visible
+to "the whole organization" in-fiction, with real Trust consequences
+for sitting idle.
+
+- **Diegetic implementation:** an always-on status panel in the desk
+  scene (a chat-app sidebar is the natural fit) showing your own status
+  dot alongside a roster of coworker names, each with their own dot.
+  The coworker dots are atmosphere in v1 — nothing needs to *act* on
+  seeing you go idle yet — the exposure itself is the point: you are
+  visibly, continuously watched, which is the surveillance-office
+  feeling this system exists to deliver. (A coworker reacting to your
+  idle time — a pointed DM, a manager task triggered specifically by
+  it — is an obvious v2 hook; flagging it as deferred rather than
+  building it now, same reasoning as §11's other cuts.)
+- **Three states, matching real presence UIs exactly:**
+  - **Online (green):** input (keystroke, click, or mouse move)
+    detected within the idle threshold.
+  - **Idle (yellow):** no input for longer than the idle threshold.
+    Default threshold: **45 real seconds**, tunable.
+  - **Offline (grey):** the app isn't open at all — this state is
+    entirely governed by §4/§4.1, not by this system; presence logic
+    only runs while the game is actually running.
+- **Consequence:** while status is Idle, Trust decays continuously
+  (a small per-tick penalty, not a one-off), for as long as the idle
+  state holds — there is no idle-forgiveness window, generalizing the
+  idle-decay line already in §5 into an actual running system rather
+  than a single penalty. Returning to Online stops the drain
+  immediately but does not refund what already drained, consistent
+  with §5's regain asymmetry.
+- **Boundary with task-timeout decay (§6.1):** this system governs
+  *ambient* idle time — no task is active, and you've simply stopped
+  touching anything. It is distinct from a live task's own
+  resolve/timeout penalty (§6.1, §6.2), which already has its own
+  Trust delta. The two should not double-penalize the same moment: the
+  ambient idle-drain is suspended while a task overlay is active and
+  resumes once you're back at idle.
+- **Shared signal, not three separate systems:** the same underlying
+  "was there input recently" signal now feeds three things — presence
+  status, spreadsheet busywork's occasional grading (§6.2), and Trust's
+  idle decay. Worth implementing as one `ActivityTracker` that the
+  other systems read from, rather than three independent timers.
+
+## 8. Audio Design
 
 - Keystroke: 1 short click-clack sample (with 2–3 pitch variants,
   randomly chosen) fired per character typed into any text field.
@@ -218,7 +266,7 @@ and to reason about "day 10 should feel unbearable."
   gameplay information, which is itself the point (dead-office
   atmosphere, not a puzzle).
 
-## 8. Win / Lose Conditions
+## 9. Win / Lose Conditions
 
 - **Lose (fired):** Trust reaches 0 at any point → termination screen,
   run ends.
@@ -231,7 +279,7 @@ and to reason about "day 10 should feel unbearable."
   nothing stops a player from deleting local save data and starting a
   fresh save (true server-side single-life enforcement, tied to a real
   identity, was considered and deliberately cut from v1 as scope creep
-  — see §10). The permadeath is a property of *that playthrough*, not
+  — see §11). The permadeath is a property of *that playthrough*, not
   a guarantee against ever seeing the game again.
 - **Win:** Survive through day 10 → in-fiction email from "the CEO"
   containing a link and a password.
@@ -244,11 +292,11 @@ This ending requires actual infrastructure (a small backend issuing
 time-boxed credentials, a hosted static page) that lives outside the
 Godot project and outside a single player's session — it needs to exist
 continuously for as long as anyone might be mid-run. **This is explicitly
-out of scope for v1** (see §10) and should be built only once the core
+out of scope for v1** (see §11) and should be built only once the core
 loop is proven fun; there's no point standing up a server for an ending
 nobody has reached yet.
 
-## 9. Technical Architecture (Godot)
+## 10. Technical Architecture (Godot)
 
 Proposed autoloads (singletons):
 - `Clock` — tracks real-world time, current in-run day, shift state.
@@ -257,6 +305,8 @@ Proposed autoloads (singletons):
 - `TaskScheduler` — decides what fires next and when, per the day-based
   difficulty table.
 - `AudioManager` — keystroke/click SFX, ambient bed layering.
+- `ActivityTracker` — raw input-recency signal (§7) that presence
+  status, spreadsheet grading, and idle Trust decay all read from.
 - `SaveState` — persists Trust, current day, peak-cap, shift history to
   disk between sessions (this game *must* survive being closed and
   reopened — that's the whole premise).
@@ -265,13 +315,17 @@ Scene structure: one `Desk` scene (idle state + spreadsheet busywork)
 that instances task scenes as overlays/interrupts, plus a title/boot
 screen and win/lose end screens.
 
-## 10. Scope: v1 vs full vision
+## 11. Scope: v1 vs full vision
 
 Recommend cutting v1 to prove the core loop before building breadth:
 
 **In v1:**
 - Fixed 160×144 window, real-time clock, defined shift window (§4).
 - Trust system with peak-cap asymmetry (§5).
+- Presence/idle indicator with Trust decay (§7) — cheap to build (one
+  timer + a status dot) relative to how much atmosphere it buys, and
+  it's what makes the spreadsheet task (below) mean something even
+  between graded moments.
 - 2–3 task types fully built (forecasting negotiation + spreadsheet
   busywork are the cheapest to make feel good; email can follow).
 - Keystroke/click SFX + one ambient loop.
@@ -285,16 +339,16 @@ Recommend cutting v1 to prove the core loop before building breadth:
 - Consequence chains from email tone (coworker follow-ups).
 - Palette/visual polish pass.
 
-## 11. Open questions needing your decision
+## 12. Open questions needing your decision
 
 Resolved: shift model, missed-task stacking, consecutive-day
 abandonment fail condition and its default (2 days, tunable, never
 surfaced as a system warning), permadeath, diegetic-only-guidance
 pillar, Company Handbook as first instance of that pillar, Trust as
-bar-only with no numeric readout (§1.1, §4, §4.1, §5, §8). Remaining:
+bar-only with no numeric readout, sometimes-scored spreadsheet
+busywork, and the presence/idle system with Trust decay (§1.1, §4,
+§4.1, §5, §6.2, §7, §9). Remaining:
 
-1. Is the spreadsheet "busywork" ever itself a scored task, or purely
-   idle flavor, in v1?
-2. Who/what determines email tone scoring in v1 — fixed rubric on a
+1. Who/what determines email tone scoring in v1 — fixed rubric on a
    small free-text field, or multiple-choice phrasing (cheaper, more
    tunable, less "real" NLP risk)?
