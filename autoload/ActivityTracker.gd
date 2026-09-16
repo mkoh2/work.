@@ -24,10 +24,14 @@ func _ready() -> void:
 	_last_input_unix = Time.get_unix_time_from_system()
 	_present_mode = SaveState.data.get("present_mode", false)
 	set_process(true)
-	set_process_unhandled_input(true)
+	set_process_input(true)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+## Uses _input(), not _unhandled_input(): Control nodes (LineEdit, Button)
+## consume input before it reaches _unhandled_input, which would silently
+## stop typing in a task's text field from ever counting as activity.
+## _input() sees every event first, regardless of what the GUI does with it.
+func _input(event: InputEvent) -> void:
 	if event is InputEventKey or event is InputEventMouseButton or event is InputEventMouseMotion:
 		_last_input_unix = Time.get_unix_time_from_system()
 

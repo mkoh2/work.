@@ -34,6 +34,21 @@ func _notification(what: int) -> void:
 func _stamp_last_open() -> void:
 	SaveState.data["last_open_unix"] = Time.get_unix_time_from_system()
 	SaveState.save()
+	_check_win_condition()
+
+
+## Reconcile runs on relaunch, but a session left open across a day boundary
+## needs its own check too -- this runs on every heartbeat (HEARTBEAT_INTERVAL)
+## so day 10 is caught even in a single long-running session. Desk.gd listens
+## for day_advanced and checks SaveState.data.run_state to notice a win.
+func _check_win_condition() -> void:
+	if SaveState.data.get("run_state", "active") != "active":
+		return
+	var day := get_current_day()
+	if day > TOTAL_DAYS:
+		SaveState.data["run_state"] = "won"
+		SaveState.save()
+	day_advanced.emit(mini(day, TOTAL_DAYS))
 
 
 ## HH:MM for the top-left display. Real local time, not a stylized clock.
