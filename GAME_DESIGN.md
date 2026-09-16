@@ -230,7 +230,13 @@ for sitting idle.
   - **Online (green):** input (keystroke, click, or mouse move)
     detected within the idle threshold.
   - **Idle (yellow):** no input for longer than the idle threshold.
-    Default threshold: **45 real seconds**, tunable.
+    **Confirmed threshold: 25 real minutes.** This is a long leash —
+    the system is a backstop against genuinely walking away for a
+    stretch, not a demand for constant fidgeting between task
+    interrupts. Worth noting since it changes the read of this system
+    from "keep touching something every few seconds" to "don't
+    disappear for half an hour," which is the more accurate framing
+    going forward.
   - **Offline (grey):** the app isn't open at all — this state is
     entirely governed by §4/§4.1, not by this system; presence logic
     only runs while the game is actually running.
@@ -253,6 +259,35 @@ for sitting idle.
   status, spreadsheet busywork's occasional grading (§6.2), and Trust's
   idle decay. Worth implementing as one `ActivityTracker` that the
   other systems read from, rather than three independent timers.
+
+### 7.1 Present Mode — a discoverable override, never explained
+
+**Confirmed:** there exists a "Present Mode" toggle (mirroring the real
+practice of setting a video call to "presenting" to suppress Teams'
+idle detection) that pins status to Online regardless of actual input,
+suspending idle-Trust-decay for as long as it's active. Per §1.1, the
+game never tells the player this exists, what it's called, or where it
+lives — it is found by clicking around the same status panel that
+displays presence, or not found at all, exactly as the original vision
+described ("designed to annoy you and have you think outside the box").
+This is the second concrete instance of the diegetic-guidance pillar,
+after the Handbook (§4.1) — but where the Handbook states a real rule
+outright to a player who looks, Present Mode is closer to a genuine
+exploit: knowledge a player earns by messing with the UI, not
+knowledge the fiction ever states anywhere.
+
+**Why this doesn't trivialize the system once found:** Present Mode
+only suppresses the *ambient idle-drain* — it does not pause, hide, or
+soften real task interrupts (forecasting negotiations, emails, the
+spreadsheet's graded moments, WarioWare micro-tasks per §6). Those
+still fire on schedule and still carry their own full Trust
+consequences whether Present Mode is on or off. A player who finds and
+leaves on Present Mode has solved exactly one subsystem — the passive
+surveillance tax — and gained real, permanent relief from it, but the
+actual work (§6) and the missed-task/abandonment logic (§4, §4.1) are
+completely unaffected and remain the real difficulty of the game. This
+keeps the discovery feeling like a genuine, fair "you outsmarted the
+system" win rather than a balance hole.
 
 ## 8. Audio Design
 
@@ -346,8 +381,9 @@ abandonment fail condition and its default (2 days, tunable, never
 surfaced as a system warning), permadeath, diegetic-only-guidance
 pillar, Company Handbook as first instance of that pillar, Trust as
 bar-only with no numeric readout, sometimes-scored spreadsheet
-busywork, and the presence/idle system with Trust decay (§1.1, §4,
-§4.1, §5, §6.2, §7, §9). Remaining:
+busywork, the presence/idle system with its 25-minute threshold and
+Trust decay, and Present Mode as a discoverable, unexplained override
+(§1.1, §4, §4.1, §5, §6.2, §7, §7.1, §9). Remaining:
 
 1. Who/what determines email tone scoring in v1 — fixed rubric on a
    small free-text field, or multiple-choice phrasing (cheaper, more
