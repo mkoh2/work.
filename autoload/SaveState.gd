@@ -22,6 +22,8 @@ func _default_data() -> Dictionary:
 		"run_start_unix": 0.0,
 		"last_open_unix": 0.0,
 		"next_task_unix": 0.0,
+		"next_meeting_unix": 0.0,
+		"next_meeting_duration": 0.0,
 		"consecutive_missed_days": 0,
 		"run_state": "active", # active | fired | abandoned | won
 		"present_mode": false,

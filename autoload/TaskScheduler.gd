@@ -25,25 +25,6 @@ func _ready() -> void:
 		_schedule_next(Time.get_unix_time_from_system())
 
 
-## Time.get_datetime_dict_from_unix_time() only returns UTC -- confirmed
-## against the real engine, there is no local-time overload for an
-## arbitrary past timestamp (unlike get_datetime_dict_from_system(), which
-## is always local "now"). "Monday" should mean the player's local Monday,
-## so this computes the local UTC offset once by comparing system-local
-## "now" to system "now" re-read as UTC, then applies that fixed offset to
-## whatever timestamp is asked about. This is an approximation: a multi-day
-## absence spanning a DST transition can be off by an hour for the older
-## end of the gap. Acceptable for a task-volume flavor system; not worth a
-## full timezone library over.
-func _local_datetime(unix_time: float) -> Dictionary:
-	var now: float = Time.get_unix_time_from_system()
-	var local_now := Time.get_datetime_dict_from_system()
-	var utc_now := Time.get_datetime_dict_from_unix_time(int(now))
-	var offset: float = (Time.get_unix_time_from_datetime_dict(local_now)
-			- Time.get_unix_time_from_datetime_dict(utc_now))
-	return Time.get_datetime_dict_from_unix_time(int(unix_time + offset))
-
-
 ## Tasks-per-real-day range for the given weekday/month. §6.3, confirmed
 ## shape: light Monday, ramps to a Thursday peak, Friday depends on month.
 ## Saturday/Sunday default to the light Monday range as a placeholder --
@@ -71,7 +52,7 @@ func _volume_range_for(weekday: int, month: int) -> Vector2i:
 ## Converts a day's task-count range into an average interval between
 ## tasks, then jitters +/-40% around it so tasks don't arrive on a metronome.
 func _interval_range_for(from_unix: float) -> Vector2:
-	var dt := _local_datetime(from_unix)
+	var dt := Clock.local_datetime_from_unix(from_unix)
 	var volume: Vector2i = _volume_range_for(dt["weekday"], dt["month"])
 	var avg_volume: float = (volume.x + volume.y) / 2.0
 	var avg_interval: float = Clock.SECONDS_PER_DAY / avg_volume

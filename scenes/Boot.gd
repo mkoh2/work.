@@ -14,6 +14,7 @@ func _ready() -> void:
 
 	var result := Clock.reconcile_on_launch()
 	SaveState.data["pending_missed_count"] = result.get("missed_task_penalties", []).size()
+	SaveState.data["pending_missed_meetings"] = result.get("missed_meeting_count", 0)
 	SaveState.save()
 
 	var state: String = SaveState.data.get("run_state", "active")

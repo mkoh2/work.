@@ -230,6 +230,38 @@ statistic.
    a printer jam, a Slack ping you must not click). These exist purely
    for pacing/comic relief and small Trust stakes either direction.
 
+5. **Meetings — confirmed, "8-bit glory."** Unlike the tasks above,
+   meetings are not randomized interrupts drawn from a rolling
+   interval — they are real calendar events: a fixed start time and a
+   real duration, one per weekday (default: a random work-hours slot,
+   9am–5pm local, 15–30 real minutes long; weekend meetings share the
+   same open weekend question as §6.3). A calendar chip appears once a
+   meeting's window has actually opened (per §1.1: nothing warns the
+   player in advance that one is coming — a meeting existing in the
+   world is fine, the game coaching the player about it is not).
+   - **Confirmed: the player is never forced to attend.** Three
+     outcomes: join on time (within a short grace window of the start),
+     join late, or never join at all. On-time attendance is treated as
+     merely expected, not rewarded (Trust delta 0) — this isn't a
+     scoring opportunity like forecasting or email, showing up is just
+     the baseline. Late carries a small penalty; a fully missed meeting
+     (window closes with no join) carries a penalty in the §5 -8..-20
+     bad-task range.
+   - **Joining locks out the Desk for the real remainder of the
+     meeting** — once in, you're in until it ends, no early-leave
+     option. This creates a genuine tradeoff the design leans into on
+     purpose: tasks that would have fired during that locked-out window
+     count as missed too (reusing the same §4 missed-task reconciliation
+     that handles the app being closed), so attending a meeting really
+     does cost you your ordinary desk work. Sometimes skipping a
+     meeting to keep the task backlog clear is the rational play, same
+     as it would be at a real job — the game does not push you toward
+     either choice.
+   - Visually: a distinct "8-bit" meeting-room presentation (blocky
+     retro-styled attendee avatars, a plain conference table) rather
+     than reusing the administrative panel look of the other tasks —
+     the room should read as a different kind of place than the desk.
+
 ### 6.3 Difficulty curve
 
 **Confirmed: task volume follows the real calendar day being played, not
@@ -399,6 +431,9 @@ Proposed autoloads (singletons):
 - `AudioManager` — keystroke/click SFX, ambient bed layering.
 - `ActivityTracker` — raw input-recency signal (§7) that presence
   status, spreadsheet grading, and idle Trust decay all read from.
+- `MeetingScheduler` — calendar-slotted meetings (§6.2 item 5), separate
+  from `TaskScheduler`'s randomized interval model since meetings are
+  fixed real-time events with a duration, not a rolling interval.
 - `SaveState` — persists Trust, current day, peak-cap, shift history to
   disk between sessions (this game *must* survive being closed and
   reopened — that's the whole premise).
@@ -420,6 +455,10 @@ Recommend cutting v1 to prove the core loop before building breadth:
   between graded moments.
 - 2–3 task types fully built (forecasting negotiation + spreadsheet
   busywork are the cheapest to make feel good; email can follow).
+- Meetings (§6.2 item 5): calendar-scheduled join/late/skip, the
+  desk-lockout-while-attending mechanic, and the "8-bit" room visual
+  treatment. Cheap relative to its payoff since it reuses §4's
+  missed-task reconciliation rather than inventing a parallel system.
 - Keystroke/click SFX + one ambient loop.
 - Local save/load. Lose state. A **stubbed** win state (in-fiction email
   appears, but the link/password can point to a placeholder or nothing

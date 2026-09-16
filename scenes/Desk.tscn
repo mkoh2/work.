@@ -54,6 +54,14 @@ grow_vertical = 2
 flat = true
 text = ""
 
+[node name="CalendarChip" type="Button" parent="."]
+offset_left = 138.0
+offset_top = 16.0
+offset_right = 158.0
+offset_bottom = 26.0
+disabled = true
+text = "MTG"
+
 [node name="Spreadsheet" type="GridContainer" parent="."]
 offset_left = 2.0
 offset_top = 40.0

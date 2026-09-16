@@ -57,6 +57,35 @@ func get_time_string() -> String:
 	return "%02d:%02d" % [dt.hour, dt.minute]
 
 
+## Time.get_datetime_dict_from_unix_time() only returns UTC -- confirmed
+## against the real engine, there is no local-time overload for an
+## arbitrary past/future timestamp (unlike get_datetime_dict_from_system(),
+## which is always local "now"). Anything that needs the player's local
+## calendar day for a timestamp other than "now" (TaskScheduler's §6.3
+## weekday volume, MeetingScheduler's calendar slots) goes through this
+## pair rather than reimplementing the offset correction. Approximation:
+## can be off by an hour across a DST transition between "now" and the
+## timestamp in question -- acceptable for calendar-flavor systems, not
+## worth a full timezone library over.
+func _local_offset_seconds() -> float:
+	var now: float = Time.get_unix_time_from_system()
+	var local_now := Time.get_datetime_dict_from_system()
+	var utc_now := Time.get_datetime_dict_from_unix_time(int(now))
+	return (Time.get_unix_time_from_datetime_dict(local_now)
+			- Time.get_unix_time_from_datetime_dict(utc_now))
+
+
+func local_datetime_from_unix(unix_time: float) -> Dictionary:
+	return Time.get_datetime_dict_from_unix_time(int(unix_time + _local_offset_seconds()))
+
+
+## Inverse of local_datetime_from_unix(): given a local calendar dict
+## (year/month/day/hour/minute/second), returns the unix timestamp it
+## corresponds to. Verified round-trip against the real engine.
+func unix_from_local_datetime(dt: Dictionary) -> float:
+	return Time.get_unix_time_from_datetime_dict(dt) - _local_offset_seconds()
+
+
 func get_current_day() -> int:
 	var start: float = SaveState.data.get("run_start_unix", 0.0)
 	if start <= 0.0:
@@ -75,6 +104,7 @@ func reconcile_on_launch() -> Dictionary:
 	var now := Time.get_unix_time_from_system()
 	var result := {
 		"missed_task_penalties": [],
+		"missed_meeting_count": 0,
 		"abandoned": false,
 		"won": false,
 		"started_new_run": false,
@@ -95,6 +125,18 @@ func reconcile_on_launch() -> Dictionary:
 		for penalty in missed:
 			TrustManager.apply_delta(penalty)
 		result["missed_task_penalties"] = missed
+
+		# Same catch-up pattern for calendar-scheduled meetings: keep
+		# resolving "missed" until we reach one whose window is still in
+		# the future. Bounded by MeetingScheduler's own 14-day search cap.
+		var missed_meetings := 0
+		while true:
+			var meeting_penalty: float = MeetingScheduler.reconcile()
+			if meeting_penalty == 0.0:
+				break
+			TrustManager.apply_delta(meeting_penalty)
+			missed_meetings += 1
+		result["missed_meeting_count"] = missed_meetings
 
 		# A day here is a rolling 24h window since the last time the app was
 		# open, not a calendar date -- avoids timezone edge cases and matches

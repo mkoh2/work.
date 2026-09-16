@@ -19,6 +19,7 @@ Clock="*res://autoload/Clock.gd"
 ActivityTracker="*res://autoload/ActivityTracker.gd"
 AudioManager="*res://autoload/AudioManager.gd"
 TaskScheduler="*res://autoload/TaskScheduler.gd"
+MeetingScheduler="*res://autoload/MeetingScheduler.gd"
 
 [display]
 
