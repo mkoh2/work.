@@ -13,6 +13,23 @@ for the same thing your actual job does: sustained, low-grade attention,
 paid out in real minutes, with a resource (Trust) that punishes mistakes
 asymmetrically and never fully forgives them.
 
+### 1.1 Design pillar: diegetic guidance only, never a system explaining itself
+
+The game never tells you its own rules through UI chrome — no tutorial
+popups, no "warning: one more missed day and you're fired" banners, no
+tooltips explaining what Trust does. Anything you'd need to know to play
+well is either learnable by consequence (you did a thing, something
+happened, you infer why) or discoverable by exploring the environment
+(reading a document, opening a drawer) — never handed to you by the
+interface breaking character to coach you.
+
+This does **not** mean individual tasks are instruction-free — a
+WarioWare-style micro-task still needs enough in-fiction affordance to
+be legible in the few seconds you have (a ringing phone, a blinking
+cursor, a highlighted cell) — the pillar is about *meta*-rules (how
+Trust math works, what ends the run, what the consequences are), not
+about whether a task is comprehensible in the moment.
+
 You win by staying employed for 10 real-world days. You lose by hitting
 zero Trust.
 
@@ -84,12 +101,27 @@ days (no launch at all) ends the run outright, regardless of current
 Trust** — mirroring a real no-call/no-show policy rather than routing
 everything through the Trust number.
 
-- Proposed default: **2 consecutive fully-missed days = terminated.**
-  (Real no-call/no-show policies vary 1–3 days; 2 gives one visible
-  warning state — day 1 missed shows as a heavy Trust hit and an
-  explicit warning on relaunch — before day 2's absence ends the run on
-  login. This number is easy to tune later; flagging it as a default,
-  not a final number.)
+- Default: **2 consecutive fully-missed days = terminated.** Real
+  no-call/no-show policies vary 1–3 days; 2 is a tunable default, not a
+  final number, and is chosen purely as an internal balance value — per
+  §1.1, the game does **not** surface this threshold to the player as a
+  system warning. There is no "one more missed day and you're fired"
+  banner.
+- What the player *does* see on relaunch after an absence is strictly
+  consequence, not instruction: the missed-task backlog and its Trust
+  penalties (§4), which already happened and are being reported as
+  fact. Whether that consequence trend implies the run is about to end
+  is left for the player to infer, same as at a real job.
+- **The Company Handbook** is the one diegetic source that states the
+  actual policy outright, for a player who goes looking: an
+  interactable prop in the desk scene (a binder, a drawer document —
+  placement TBD) containing dry, deadpan in-fiction HR copy. Somewhere
+  in it, stated as plainly as real employee handbooks state real
+  policy, is the actual attendance rule. A player who explores finds
+  the rule explicitly; a player who doesn't, doesn't — and only
+  discovers it by living through it. This is the first concrete
+  instance of §1.1's pillar and the template for how future systems
+  (Trust math, task scoring) should expose their rules, if at all.
 - This check runs on relaunch, evaluated against the gap since last
   launch, same as the missed-task backlog in §4.
 - Distinguish this state clearly from a Trust-zero firing in the
@@ -252,13 +284,14 @@ Recommend cutting v1 to prove the core loop before building breadth:
 ## 11. Open questions needing your decision
 
 Resolved: shift model, missed-task stacking, consecutive-day
-abandonment fail condition, permadeath (all §4, §4.1, §8). Remaining:
+abandonment fail condition and its default (2 days, tunable, never
+surfaced as a system warning), permadeath, diegetic-only-guidance
+pillar, Company Handbook as first instance of that pillar (§1.1, §4,
+§4.1, §8). Remaining:
 
-1. Confirm the "2 consecutive missed days" default in §4.1, or set a
-   different number.
-2. Trust: bar-only (no number) — confirm, since it changes UI scope.
-3. Is the spreadsheet "busywork" ever itself a scored task, or purely
+1. Trust: bar-only (no number) — confirm, since it changes UI scope.
+2. Is the spreadsheet "busywork" ever itself a scored task, or purely
    idle flavor, in v1?
-4. Who/what determines email tone scoring in v1 — fixed rubric on a
+3. Who/what determines email tone scoring in v1 — fixed rubric on a
    small free-text field, or multiple-choice phrasing (cheaper, more
    tunable, less "real" NLP risk)?
