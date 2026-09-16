@@ -191,14 +191,30 @@ statistic.
    downtime at all — not because it's fun, but because stopping is
    legible as stopping.
 
-3. **Email composition** — a coworker follow-up. Not full free-text NLP;
-   more tractable as a constrained editor (fill-in-the-blank tone/word
-   choices, or short free text scored against a small rubric —
-   politeness, clarity, whether you threw someone under the bus). Wrong
-   tone can trigger a **follow-up consequence task later** (a reply from
-   an annoyed coworker, an ambush from the manager) — this is where the
-   game can pay off "it varies based on how you worded it" without
-   needing real NLP.
+3. **Email composition — confirmed rubric, free text over a fixed
+   editor.** A coworker follow-up, written as short free text (not
+   multiple-choice), scored on two axes without needing real NLP:
+   - **Introduction politeness:** a curated whitelist of
+     opener/greeting patterns (a personalized "Hi [Name],", a soft
+     pleasantry like "hope you're doing well") scores well; a blunt or
+     absent greeting scores poorly. Plain keyword/phrase matching, not
+     sentiment analysis.
+   - **Relevant corporatisms:** each email task carries its own small
+     curated list of corporate phrases that are contextually relevant
+     to that specific ask (e.g., a missed-deadline follow-up rewards
+     "circle back," "revisit the timeline"; a workload ask rewards
+     "bandwidth," "prioritize"). Score counts matches against *that
+     task's* list specifically — a generic corporate-jargon phrase that
+     doesn't relate to the ask doesn't count. This is the load-bearing
+     design choice: it's what stops a player from writing one
+     boilerplate "polite + jargon-stuffed" template and reusing it
+     verbatim for every email task regardless of content. Per-task
+     curated lists are real content work (§11 scope note: budget for
+     this per email task written, not a one-time system).
+   - Wrong tone can trigger a **follow-up consequence task later** (a
+     reply from an annoyed coworker, an ambush from the manager) — this
+     is where "it varies based on how you worded it" pays off without
+     needing real NLP.
 
 4. **WarioWare-style micro-interrupts** — very short, absurd, almost no
    instruction (a popup you must dismiss correctly in under 2 seconds,
@@ -382,9 +398,10 @@ surfaced as a system warning), permadeath, diegetic-only-guidance
 pillar, Company Handbook as first instance of that pillar, Trust as
 bar-only with no numeric readout, sometimes-scored spreadsheet
 busywork, the presence/idle system with its 25-minute threshold and
-Trust decay, and Present Mode as a discoverable, unexplained override
-(§1.1, §4, §4.1, §5, §6.2, §7, §7.1, §9). Remaining:
+Trust decay, Present Mode as a discoverable, unexplained override, and
+email tone scoring via curated per-task rubrics (§1.1, §4, §4.1, §5,
+§6.2, §7, §7.1, §9).
 
-1. Who/what determines email tone scoring in v1 — fixed rubric on a
-   small free-text field, or multiple-choice phrasing (cheaper, more
-   tunable, less "real" NLP risk)?
+**No open items remain.** Every question raised in this document has a
+confirmed answer. The design is ready to move into implementation
+against the v1 scope in §11.
