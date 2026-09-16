@@ -70,18 +70,32 @@ what to do with the gap on next launch. Proposed rule:
   simply the worst-case version of missing tasks, not a distinct rule.
 - No grace period, no pause, no "away mode." The clock is the antagonist.
 
-Open sub-question that's now purely mechanical (not philosophical) and
-still needs an answer before `Clock`/`SaveState` gets built: task
-frequency while away — do tasks keep firing at the normal in-shift rate
-during absence (so a multi-day absence could generate dozens of missed
-tasks and a near-certain loss), or does the scheduler throttle to a
-handful of "you missed something" markers per absence regardless of
-length? The former is more punishing and more consistent with the
-design intent; the latter avoids a single missed day being an
-auto-loss regardless of standing. Recommend the former, since a capped
-penalty is exactly the kind of softening this design is rejecting — but
-flagging it because "day 3 auto-loss" is a real possible outcome of
-that choice, and that should be a choice, not a side effect.
+**Confirmed:** tasks keep stacking at the normal in-shift rate during an
+absence — no throttling, no capped "you missed something" summary. A
+multi-day absence generates the full backlog of missed tasks, each
+applying its own Trust penalty, seen in full on relaunch. This is
+deliberate: a capped penalty would be exactly the kind of softening the
+design is rejecting.
+
+### 4.1 Job abandonment — a second, independent fail condition
+
+Trust hitting 0 is not the only way to lose. **Missing consecutive full
+days (no launch at all) ends the run outright, regardless of current
+Trust** — mirroring a real no-call/no-show policy rather than routing
+everything through the Trust number.
+
+- Proposed default: **2 consecutive fully-missed days = terminated.**
+  (Real no-call/no-show policies vary 1–3 days; 2 gives one visible
+  warning state — day 1 missed shows as a heavy Trust hit and an
+  explicit warning on relaunch — before day 2's absence ends the run on
+  login. This number is easy to tune later; flagging it as a default,
+  not a final number.)
+- This check runs on relaunch, evaluated against the gap since last
+  launch, same as the missed-task backlog in §4.
+- Distinguish this state clearly from a Trust-zero firing in the
+  end-of-run screen (§8) — "you stopped showing up" is a different
+  ending beat than "they finally had enough of you," even though both
+  are game over.
 
 ## 5. Trust System
 
@@ -170,7 +184,19 @@ and to reason about "day 10 should feel unbearable."
 
 ## 8. Win / Lose Conditions
 
-- **Lose:** Trust reaches 0 at any point → termination screen, run ends.
+- **Lose (fired):** Trust reaches 0 at any point → termination screen,
+  run ends.
+- **Lose (abandonment):** 2 consecutive fully-missed days (§4.1) →
+  separate termination screen, run ends, regardless of Trust value.
+- **Permadeath (confirmed):** either loss is permanent for that save.
+  There is no continue, no retry, no "new game" option on a save that
+  has already ended — the save file itself is marked terminated and the
+  game states as much. This is enforced at the save-file level only;
+  nothing stops a player from deleting local save data and starting a
+  fresh save (true server-side single-life enforcement, tied to a real
+  identity, was considered and deliberately cut from v1 as scope creep
+  — see §10). The permadeath is a property of *that playthrough*, not
+  a guarantee against ever seeing the game again.
 - **Win:** Survive through day 10 → in-fiction email from "the CEO"
   containing a link and a password.
   - The link points to a **real, externally hosted** site.
@@ -225,20 +251,14 @@ Recommend cutting v1 to prove the core loop before building breadth:
 
 ## 11. Open questions needing your decision
 
-1. ~~Shift-window model~~ — resolved (§4): wall-clock runs while closed,
-   no grace period. Still open: does the task scheduler keep firing at
-   normal rate during an absence (near-guaranteed loss on a multi-day
-   gap) or throttle to a capped number of missed-task markers per
-   absence? Recommend the former per design intent, flagged as a real
-   "can auto-lose the run" consequence to confirm on purpose.
-2. Is 10 days consecutive-required, or can a lost run be retried, or is
-   loss permanent/one life only? (Given the design intent, one life —
-   no retry — may be the more consistent answer, but worth confirming:
-   permadeath changes what "designed to frustrate" means in practice,
-   from "hard" to "usually you just lose once and that's the game.")
-3. Trust: bar-only (no number) — confirm, since it changes UI scope.
-4. Is the spreadsheet "busywork" ever itself a scored task, or purely
+Resolved: shift model, missed-task stacking, consecutive-day
+abandonment fail condition, permadeath (all §4, §4.1, §8). Remaining:
+
+1. Confirm the "2 consecutive missed days" default in §4.1, or set a
+   different number.
+2. Trust: bar-only (no number) — confirm, since it changes UI scope.
+3. Is the spreadsheet "busywork" ever itself a scored task, or purely
    idle flavor, in v1?
-5. Who/what determines email tone scoring in v1 — fixed rubric on a
+4. Who/what determines email tone scoring in v1 — fixed rubric on a
    small free-text field, or multiple-choice phrasing (cheaper, more
    tunable, less "real" NLP risk)?
