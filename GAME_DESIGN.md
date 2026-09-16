@@ -153,9 +153,13 @@ starting model:
   no idle-forgiveness window.
 - **Fail state:** Trust hits 0 → fired, run ends, game over screen.
 
-Open question: should there be a visible number, or only a bar (more
-anxiety-inducing, more "real life")? Recommend bar-only, no number —
-mirrors how you never actually know where you stand with a manager.
+**Confirmed: bar only, no number, anywhere in the UI.** The 0–100 range
+above is an internal simulation value only — the player never sees it
+as a figure, only a bar's fill level (and, per §1.1, no tooltip or
+label explaining what moved it or by how much). This mirrors never
+actually knowing where you stand with a manager, and it's consistent
+with the diegetic-guidance pillar: the game reports a feeling, not a
+statistic.
 
 ## 6. Task System
 
@@ -286,12 +290,11 @@ Recommend cutting v1 to prove the core loop before building breadth:
 Resolved: shift model, missed-task stacking, consecutive-day
 abandonment fail condition and its default (2 days, tunable, never
 surfaced as a system warning), permadeath, diegetic-only-guidance
-pillar, Company Handbook as first instance of that pillar (§1.1, §4,
-§4.1, §8). Remaining:
+pillar, Company Handbook as first instance of that pillar, Trust as
+bar-only with no numeric readout (§1.1, §4, §4.1, §5, §8). Remaining:
 
-1. Trust: bar-only (no number) — confirm, since it changes UI scope.
-2. Is the spreadsheet "busywork" ever itself a scored task, or purely
+1. Is the spreadsheet "busywork" ever itself a scored task, or purely
    idle flavor, in v1?
-3. Who/what determines email tone scoring in v1 — fixed rubric on a
+2. Who/what determines email tone scoring in v1 — fixed rubric on a
    small free-text field, or multiple-choice phrasing (cheaper, more
    tunable, less "real" NLP risk)?
