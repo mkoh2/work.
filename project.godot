@@ -1,0 +1,38 @@
+; Engine configuration file.
+; Godot 4.x, GDScript.
+; See GAME_DESIGN.md for the design this scaffold implements.
+
+config_version=5
+
+[application]
+
+config/name="Untitled Office Game"
+run/main_scene="res://scenes/Boot.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+SaveState="*res://autoload/SaveState.gd"
+TrustManager="*res://autoload/TrustManager.gd"
+Clock="*res://autoload/Clock.gd"
+ActivityTracker="*res://autoload/ActivityTracker.gd"
+AudioManager="*res://autoload/AudioManager.gd"
+TaskScheduler="*res://autoload/TaskScheduler.gd"
+
+[display]
+
+window/size/viewport_width=160
+window/size/viewport_height=144
+window/size/window_width_override=640
+window/size/window_height_override=576
+window/size/resizable=false
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
+window/stretch/scale_mode="integer"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
