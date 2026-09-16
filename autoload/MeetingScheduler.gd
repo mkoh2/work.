@@ -11,7 +11,7 @@ signal meeting_resolved(status: String, trust_delta: float) # "on_time" | "late"
 const MEETING_WEEKDAYS := [
 	Time.WEEKDAY_MONDAY, Time.WEEKDAY_TUESDAY, Time.WEEKDAY_WEDNESDAY,
 	Time.WEEKDAY_THURSDAY, Time.WEEKDAY_FRIDAY,
-] # none on weekends by default -- same open weekend question as §6.3
+] # none on weekends -- confirmed true rest days, same as TaskScheduler (§6.3)
 
 const WORK_HOUR_START := 9
 const WORK_HOUR_END := 17

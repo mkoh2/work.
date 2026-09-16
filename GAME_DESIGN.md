@@ -234,8 +234,8 @@ statistic.
    meetings are not randomized interrupts drawn from a rolling
    interval — they are real calendar events: a fixed start time and a
    real duration, one per weekday (default: a random work-hours slot,
-   9am–5pm local, 15–30 real minutes long; weekend meetings share the
-   same open weekend question as §6.3). A calendar chip appears once a
+   9am–5pm local, 15–30 real minutes long; **none on weekends — confirmed
+   true rest days, §6.3**). A calendar chip appears once a
    meeting's window has actually opened (per §1.1: nothing warns the
    player in advance that one is coming — a meeting existing in the
    world is fine, the game coaching the player about it is not).
@@ -278,12 +278,13 @@ curve:
   (June–August) and December, where Friday drops to the same light
   2–4 range as Monday.** (Northern Hemisphere summer assumed for "light
   in the summer" — flag if that's wrong.)
-- **Saturday/Sunday: still an open question**, not yet confirmed.
-  Current placeholder defaults weekends to the same light 2–4 range as
-  Monday (still active, just quiet) rather than true zero-task rest
-  days — this is a real fork (does the job respect weekends at all,
-  given §4's "the clock is the antagonist" stance?), not just a number,
-  and needs a decision rather than staying on the placeholder.
+- **Saturday/Sunday: confirmed true rest days — zero tasks, zero
+  meetings.** Not a light day like Monday; genuinely nothing scheduled.
+  This sits in real tension with §4's "the clock is the antagonist,
+  no grace period" stance — the job doesn't pause when the app is
+  closed, but it does go quiet on its own two days a week. That's the
+  confirmed shape, not a contradiction to resolve away: weekends are
+  the one place the design deliberately backs off.
 - Mechanically: a day's task-count range converts to an average
   interval between tasks (real day length ÷ average of that day's
   range), jittered ±40% so tasks don't arrive on a metronome. This

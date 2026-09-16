@@ -27,9 +27,8 @@ func _ready() -> void:
 
 ## Tasks-per-real-day range for the given weekday/month. §6.3, confirmed
 ## shape: light Monday, ramps to a Thursday peak, Friday depends on month.
-## Saturday/Sunday default to the light Monday range as a placeholder --
-## open question, not yet confirmed (see chat): true rest days with zero
-## tasks, or still-active-but-light like this?
+## Saturday/Sunday are confirmed true rest days -- zero tasks, not just a
+## light day.
 func _volume_range_for(weekday: int, month: int) -> Vector2i:
 	match weekday:
 		Time.WEEKDAY_MONDAY:
@@ -45,23 +44,56 @@ func _volume_range_for(weekday: int, month: int) -> Vector2i:
 				return Vector2i(2, 4) # summer/December Friday: light
 			else:
 				return Vector2i(2, 10) # genuinely hit-or-miss the rest of the year
-		_: # Saturday, Sunday -- placeholder, see docstring above
-			return Vector2i(2, 4)
+		_: # Saturday, Sunday: true rest days, confirmed
+			return Vector2i(0, 0)
 
 
 ## Converts a day's task-count range into an average interval between
 ## tasks, then jitters +/-40% around it so tasks don't arrive on a metronome.
+## Callers must only pass a day with nonzero volume -- see _skip_rest_days().
 func _interval_range_for(from_unix: float) -> Vector2:
 	var dt := Clock.local_datetime_from_unix(from_unix)
 	var volume: Vector2i = _volume_range_for(dt["weekday"], dt["month"])
 	var avg_volume: float = (volume.x + volume.y) / 2.0
+	if avg_volume <= 0.0:
+		push_warning("TaskScheduler: _interval_range_for() called on a rest day -- this shouldn't happen, _skip_rest_days() should have moved past it")
+		return Vector2(Clock.SECONDS_PER_DAY, Clock.SECONDS_PER_DAY) # safe fallback, not a divide-by-zero
 	var avg_interval: float = Clock.SECONDS_PER_DAY / avg_volume
 	return Vector2(avg_interval * 0.6, avg_interval * 1.4)
 
 
+## If from_unix falls on a rest day (zero task volume), steps forward to
+## the next day with nonzero volume and returns ITS local midnight --
+## otherwise returns from_unix unchanged. Steps via pure unix-epoch
+## arithmetic, never by mutating a calendar dict's "day" field directly:
+## confirmed against the real engine (see MeetingScheduler) that
+## Time.get_unix_time_from_datetime_dict() does not normalize an
+## out-of-range day across a month boundary.
+func _skip_rest_days(from_unix: float) -> float:
+	var dt := Clock.local_datetime_from_unix(from_unix)
+	if _volume_range_for(dt["weekday"], dt["month"]).y > 0:
+		return from_unix
+
+	var midnight_dt := dt.duplicate()
+	midnight_dt["hour"] = 0
+	midnight_dt["minute"] = 0
+	midnight_dt["second"] = 0
+	var midnight_unix: float = Clock.unix_from_local_datetime(midnight_dt)
+
+	for offset_days in range(1, 8): # a full week always contains an active day
+		var candidate_midnight: float = midnight_unix + offset_days * Clock.SECONDS_PER_DAY
+		var candidate_local := Clock.local_datetime_from_unix(candidate_midnight)
+		if _volume_range_for(candidate_local["weekday"], candidate_local["month"]).y > 0:
+			return candidate_midnight
+
+	push_warning("TaskScheduler: found no active weekday within 7 days -- check _volume_range_for()")
+	return from_unix
+
+
 func _schedule_next(from_unix: float) -> float:
-	var interval_range: Vector2 = _interval_range_for(from_unix)
-	var next: float = from_unix + _rng.randf_range(interval_range.x, interval_range.y)
+	var basis: float = _skip_rest_days(from_unix)
+	var interval_range: Vector2 = _interval_range_for(basis)
+	var next: float = basis + _rng.randf_range(interval_range.x, interval_range.y)
 	SaveState.data["next_task_unix"] = next
 	SaveState.save()
 	return next
