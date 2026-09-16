@@ -193,7 +193,7 @@ statistic.
 
 3. **Email composition — confirmed rubric, free text over a fixed
    editor.** A coworker follow-up, written as short free text (not
-   multiple-choice), scored on two axes without needing real NLP:
+   multiple-choice), scored on three axes without needing real NLP:
    - **Introduction politeness:** a curated whitelist of
      opener/greeting patterns (a personalized "Hi [Name],", a soft
      pleasantry like "hope you're doing well") scores well; a blunt or
@@ -211,6 +211,15 @@ statistic.
      verbatim for every email task regardless of content. Per-task
      curated lists are real content work (§11 scope note: budget for
      this per email task written, not a one-time system).
+   - **Spelling accuracy, confirmed:** dictionary-based spellcheck
+     against typed text, penalizing Trust per misspelled word,
+     independent of and additive to the tone/jargon score above — a
+     well-worded but typo-ridden email still costs Trust. The
+     dictionary must include every word in the politeness and
+     corporatism whitelists so intentional jargon is never
+     misclassified as a typo. Cap the total penalty per email (a
+     handful of typos should sting; a wall of nonsense text shouldn't
+     be a worse outcome than simply failing to write anything).
    - Wrong tone can trigger a **follow-up consequence task later** (a
      reply from an annoyed coworker, an ambush from the manager) — this
      is where "it varies based on how you worded it" pays off without
@@ -399,7 +408,8 @@ pillar, Company Handbook as first instance of that pillar, Trust as
 bar-only with no numeric readout, sometimes-scored spreadsheet
 busywork, the presence/idle system with its 25-minute threshold and
 Trust decay, Present Mode as a discoverable, unexplained override, and
-email tone scoring via curated per-task rubrics (§1.1, §4, §4.1, §5,
+email tone scoring via curated per-task rubrics plus a spelling-
+accuracy penalty (§1.1, §4, §4.1, §5,
 §6.2, §7, §7.1, §9).
 
 **No open items remain.** Every question raised in this document has a
